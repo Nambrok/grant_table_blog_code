@@ -59,6 +59,20 @@ int main(int argc, char ** argv){
 
     printf("%s\n", shbuf);
 
+    err = munmap(shbuf, nb_grant*PAGE_SIZE);
+    if(err < 0){
+        fprintf(stderr, "Unmapping the grants failed\n");
+    }
+
+    struct ioctl_gntdev_unmap_grant_ref ugref;
+    ugref.index = gref->index;
+    ugref.count = nb_grant;
+
+    err = ioctl(gntdev_fd, IOCTL_GNTDEV_UNMAP_GRANT_REF, &ugref);
+    if(err < 0){
+        fprintf(stderr, "IOCTL for unmap failed\n");
+    }
+
 
     free(gref);
     free(refid);

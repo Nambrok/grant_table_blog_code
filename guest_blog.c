@@ -52,6 +52,9 @@ int main(int argc, char ** argv){
 
     sprintf(shpages, "Hello, World!");
 
+    /**
+     * We wait for interrupt to begin cleaning up
+     */
     int sig;
     sigset_t set;
     sigemptyset(&set);
@@ -62,6 +65,21 @@ int main(int argc, char ** argv){
     if(sigwait(&set, &sig)){
         fprintf(stderr, "Sigwait failed with error\n");
     }
+
+    err = munmap(shpages, count*PAGE_SIZE);
+    if(err < 0){
+        fprintf(stderr, "Unmapping grants failed\n");
+    }
+
+    struct ioctl_gntalloc_dealloc_gref dgref;
+    dgref.index = gref->index;
+    dgref.count = count;
+
+    err = ioctl(gntalloc_fd, IOCTL_GNTALLOC_DEALLOC_GREF, &dgref);
+    if(err < 0){
+        fprintf(stderr, "IOCTL for deallocating grants failed\n");
+    }
+
 
     free(gref);
     close(gntalloc_fd);
